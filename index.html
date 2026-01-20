@@ -2,348 +2,211 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0ea5e9">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="application-name" content="CN10 Quiz">
-    
-    <title>Trắc Nghiệm Công Nghệ 10 - Biểu Diễn Ren</title>
-    
-    <!-- React & Tailwind -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Icons & Fonts -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Thi Đua - GitHub Version</title>
     <style>
-        * { -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            font-family: 'Be Vietnam Pro', sans-serif; 
-            background-color: #f0f9ff; 
-            overscroll-behavior-y: none;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+      body { font-family: 'Segoe UI', sans-serif; background: #f4f6f8; padding: 15px; margin: 0; }
+      .container { max-width: 950px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+      
+      /* Tabs */
+      .tab { display: flex; background: #004d40; }
+      .tab button { flex: 1; padding: 15px; border: none; background: none; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+      .tab button:hover { background: #00695c; }
+      .tab button.active { background: #00796b; border-bottom: 4px solid #b2dfdb; }
+      .tabcontent { padding: 20px; display: none; }
+      .tabcontent.active { display: block; }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+      /* Form Style */
+      label { font-weight: 600; display: block; margin-bottom: 5px; margin-top: 10px; color: #333; }
+      input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+      .row { display: flex; gap: 15px; flex-wrap: wrap; }
+      .col { flex: 1; min-width: 200px; }
+      
+      .btn { width: 100%; padding: 12px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; margin-top: 15px; }
+      .btn-save { background: #2e7d32; }
+      .btn-search { background: #1565c0; }
+      .btn:disabled { background: #ccc; cursor: not-allowed; }
 
-        .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .animate-pop { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pop { 0% { transform: scale(0.9); } 100% { transform: scale(1); } }
-        
-        .confetti { position: absolute; width: 12px; height: 12px; background-color: #f00; animation: confetti-fall 3s linear infinite; }
-        @keyframes confetti-fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-        
-        /* Mở khóa nhập liệu cho input */
-        input, select, textarea { 
-            user-select: text !important; 
-            -webkit-user-select: text !important;
-            pointer-events: auto !important;
-        }
+      /* Table Result Style */
+      .table-wrapper { overflow-x: auto; margin-top: 15px; }
+      table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; }
+      th, td { padding: 10px; border: 1px solid #ddd; text-align: left; vertical-align: middle; }
+      th { background: #00796b; color: white; text-transform: uppercase; font-size: 0.85em; }
+      tr:nth-child(even) { background: #f9f9f9; }
+      
+      .plus { color: green; font-weight: bold; }
+      .minus { color: red; font-weight: bold; }
+      .total { color: blue; font-weight: 900; font-size: 1.1em; }
+      .rank { background-color: #ffecb3; font-weight: bold; text-align: center; color: #e65100; }
+      
+      /* Loading Spinner */
+      .loader { border: 4px solid #f3f3f3; border-radius: 50%; border-top: 4px solid #00796b; width: 20px; height: 20px; animation: spin 2s linear infinite; display: none; margin: 10px auto; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-sky-50 h-[100dvh] flex flex-col overflow-hidden">
-    <div id="root" class="h-full w-full"></div>
+<body>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    <div class="container">
+      <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'Input')">📝 NHẬP LIỆU</button>
+        <button class="tablinks" onclick="openTab(event, 'Search')">🔍 TRA CỨU</button>
+      </div>
 
-        // --- CẤU HÌNH LIÊN KẾT GOOGLE SHEET ---
-        // Đã cập nhật link script của thầy vào đây
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwmKZvZKQQDLaXT0e-YgxdrGL9EOeeFQMmVHgANhG7Dczi5dtRx9CNaHev1B4X4Etw/exec";
+      <div id="Input" class="tabcontent active">
+        <form id="myForm">
+          <div class="row">
+            <div class="col"><label>Tuần thi đua</label><input type="text" name="tuan" placeholder="Tuần 1..." required></div>
+            <div class="col"><label>Lớp</label><input type="text" name="lop" placeholder="10TN..." required></div>
+          </div>
+          <div class="row">
+             <div class="col"><label>Người nhập</label><input type="text" name="hoten" required></div>
+             <div class="col"><label>Email</label><input type="email" name="email"></div>
+          </div>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+          
+          <div class="row">
+            <div class="col" style="flex: 0 0 80px;"><label>Điểm (+)</label><input type="number" name="diemThuong"></div>
+            <div class="col"><label>Nội dung Thưởng</label><input type="text" name="mcThuong"></div>
+          </div>
+          
+          <div class="row">
+            <div class="col" style="flex: 0 0 80px;"><label>Điểm (-)</label><input type="number" name="diemPhat"></div>
+            <div class="col"><label>Nội dung Phạt</label><input type="text" name="mcPhat"></div>
+          </div>
 
-        // Dữ liệu câu hỏi từ tài liệu Công nghệ 10 - Bài 13
-        const questionsData = [
-            { 
-                id: 1, type: "multi", 
-                question: "Theo SGK, mối ghép bằng ren thường được sử dụng cho những mục đích chính nào?", 
-                options: ["Kẹp chặt (bulong, đai ốc...)", "Hàn chết các chi tiết", "Truyền chuyển động (trục vít...)", "Dán dính bề mặt"], 
-                correctAnswer: [0, 2], 
-                explanation: "Ren dùng để kẹp chặt hoặc dùng để truyền chuyển động." 
-            },
-            { 
-                id: 2, type: "fill", 
-                question: "Điền từ còn thiếu: Ren hình thành trên bề mặt ngoài của hình trụ gọi là ren ngoài hay còn gọi là ...", 
-                correctAnswer: ["ren trục"], 
-                explanation: "Ren ngoài (ren trục) là ren hình thành trên bề mặt ngoài." 
-            },
-            { 
-                id: 3, type: "mc", 
-                question: "Trong quy ước vẽ ren trục (ren ngoài), đường đỉnh ren và đường giới hạn ren được vẽ bằng nét gì?", 
-                options: ["Nét liền mảnh", "Nét đứt mảnh", "Nét liền đậm", "Nét lượn sóng"], 
-                correctAnswer: 2, 
-                explanation: "Đường đỉnh ren và giới hạn ren được vẽ bằng nét liền đậm." 
-            },
-            { 
-                id: 4, type: "mc", 
-                question: "Kí hiệu ren 'M18' có ý nghĩa là gì?", 
-                options: ["Ren hệ mét, đường kính d = 18mm", "Ren hình thang, đường kính d = 18mm", "Ren ống, bước ren 18mm", "Ren vuông, kích thước 18mm"], 
-                correctAnswer: 0, 
-                explanation: "Chữ M kí hiệu cho ren hệ mét, số 18 là kích thước đường kính d." 
-            },
-            { 
-                id: 5, type: "tf", 
-                question: "Trên hình chiếu vuông góc với trục ren, vòng chân ren được vẽ đóng kín cả vòng tròn.", 
-                options: ["Đúng", "Sai"], 
-                correctAnswer: 1, 
-                explanation: "Sai. Vòng chân ren chỉ vẽ hở khoảng 1/4 vòng (vẽ 3/4 vòng)." 
-            },
-            { 
-                id: 6, type: "mc", 
-                question: "Trong kí hiệu ren 'Tr40x2LH', chữ 'LH' biểu thị điều gì?", 
-                options: ["Ren liên hợp", "Ren lỗ hổng", "Hướng xoắn trái", "Hướng xoắn phải"], 
-                correctAnswer: 2, 
-                explanation: "Ren có hướng xoắn phải không ghi, hướng xoắn trái ghi chữ LH." 
-            },
-            { 
-                id: 7, type: "mc", 
-                question: "Khi vẽ hình cắt của mối ghép ren (ren trục lắp với ren lỗ), phần ăn khớp được quy ước vẽ như thế nào?", 
-                options: ["Ren lỗ che khuất ren trục", "Ren trục che khuất ren lỗ", "Vẽ cả hai nét chồng lên nhau", "Không vẽ phần ren"], 
-                correctAnswer: 1, 
-                explanation: "Quy ước: Phần ăn khớp biểu diễn ren trục che khuất ren lỗ." 
-            },
-            { 
-                id: 8, type: "tf", 
-                question: "Đường kính d (đường kính lớn nhất) là đường kính đỉnh của ren ngoài và đường kính chân của ren trong.", 
-                options: ["Đúng", "Sai"], 
-                correctAnswer: 0, 
-                explanation: "Đúng. d là đường kính lớn nhất (đỉnh ren ngoài, chân ren trong)." 
-            },
-            { 
-                id: 9, type: "fill", 
-                question: "Kí hiệu của ren hình thang (dùng để truyền chuyển động) là chữ gì?", 
-                correctAnswer: ["tr"], 
-                explanation: "Ren hình thang kí hiệu là Tr." 
-            },
-            { 
-                id: 10, type: "mc", 
-                question: "Đối với ren khuất (bị che khuất), các đường đỉnh ren, chân ren và giới hạn ren đều được vẽ bằng nét gì?", 
-                options: ["Nét liền đậm", "Nét liền mảnh", "Nét đứt mảnh", "Nét chấm gạch"], 
-                correctAnswer: 2, 
-                explanation: "Khi bị che khuất, tất cả các đường của ren đều vẽ bằng nét đứt mảnh." 
+           <div class="row">
+             <div class="col"><label>Xếp Hạng</label><input type="text" name="hang"></div>
+             <div class="col"><label>Ban Thi Đua</label><input type="text" name="banThiDua"></div>
+          </div>
+          <label>Ghi nhận Đoàn trường</label><input type="text" name="ghiNhanDoanTruong">
+          
+          <input type="hidden" name="yKien">
+          <input type="hidden" name="ghiChu">
+
+          <button type="submit" class="btn btn-save">LƯU KẾT QUẢ</button>
+        </form>
+        <div class="loader" id="loaderInput"></div>
+        <p id="msg" style="text-align:center; color:green; margin-top:10px;"></p>
+      </div>
+
+      <div id="Search" class="tabcontent">
+        <div class="row">
+          <div class="col">
+            <input type="text" id="searchInput" placeholder="Nhập tên LỚP hoặc TUẦN...">
+          </div>
+          <div class="col" style="flex: 0 0 100px;">
+             <button onclick="searchData()" class="btn btn-search" style="margin-top:10px">Tìm</button>
+          </div>
+        </div>
+        <div class="loader" id="loaderSearch"></div>
+        <div id="resultsArea" class="table-wrapper"></div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================
+      // LINK WEB APP CỦA BẠN ĐÃ ĐƯỢC CHÈN VÀO ĐÂY:
+      const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5lWLYn1phFshadZMVprSkbCGyqrMdFN7Byor-Z6MdSSuize1fQNkmqHydXO0euag/exec";
+      // ==========================================
+
+      function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+        document.getElementById(tabName).style.display = "block";
+        if(evt) evt.currentTarget.className += " active";
+      }
+
+      // Xử lý Form Submit (Gửi dữ liệu)
+      const form = document.getElementById('myForm');
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        const btn = document.querySelector(".btn-save");
+        const loader = document.getElementById("loaderInput");
+        const msg = document.getElementById("msg");
+        
+        btn.disabled = true;
+        btn.textContent = "Đang gửi...";
+        loader.style.display = "block";
+        msg.textContent = "";
+
+        // Chuyển FormData sang JSON object
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => data[key] = value);
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(response => {
+           if(response.result === "success") {
+             form.reset();
+             msg.textContent = response.message;
+           } else {
+             msg.textContent = "Lỗi: " + JSON.stringify(response.error);
+             msg.style.color = "red";
+           }
+        })
+        .catch(err => {
+           msg.textContent = "Lỗi kết nối: " + err;
+           msg.style.color = "red";
+        })
+        .finally(() => {
+           btn.disabled = false;
+           btn.textContent = "LƯU KẾT QUẢ";
+           loader.style.display = "none";
+        });
+      });
+
+      // Xử lý Tìm kiếm
+      function searchData() {
+        var keyword = document.getElementById("searchInput").value;
+        if(!keyword) return;
+
+        const loader = document.getElementById("loaderSearch");
+        const div = document.getElementById("resultsArea");
+        
+        div.innerHTML = "";
+        loader.style.display = "block";
+
+        fetch(SCRIPT_URL + "?action=search&keyword=" + encodeURIComponent(keyword))
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+              div.innerHTML = "<p style='text-align:center; color:red'>Không tìm thấy dữ liệu!</p>";
+              return;
             }
-        ];
-
-        // --- COMPONENT GIAO DIỆN ---
-
-        const ProgressBar = ({ current, total }) => (
-            <div className="flex gap-1 mb-6 px-1">
-                {[...Array(total)].map((_, i) => (
-                    <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i < current ? 'bg-sky-500' : i === current ? 'bg-sky-200' : 'bg-gray-200'}`}></div>
-                ))}
-            </div>
-        );
-
-        const WelcomeView = ({ studentInfo, onNameChange, onClassChange, handleStart }) => {
-            return (
-                <div className="flex flex-col h-full bg-white relative overflow-hidden overflow-y-auto">
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 z-10 animate-slide-up w-full max-w-md mx-auto">
-                        <div className="text-center mb-6">
-                            <div className="w-24 h-24 bg-gradient-to-br from-sky-400 to-blue-600 rounded-3xl shadow-xl flex items-center justify-center text-white text-4xl mb-6 rotate-6 mx-auto">
-                                <i className="fa-solid fa-compass-drafting"></i>
-                            </div>
-                            <h1 className="text-2xl font-black text-slate-800 mb-1">Công Nghệ 10</h1>
-                            <p className="text-slate-500 text-sm font-medium">Chủ đề: Biểu diễn Ren</p>
-                        </div>
-                        <div className="w-full bg-white/80 backdrop-blur-sm p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-6 space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Họ và tên</label>
-                                <div className="relative">
-                                    <i className="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
-                                    <input type="text" value={studentInfo.name} onChange={onNameChange} className="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:bg-white outline-none font-semibold text-slate-700 transition-all" placeholder="Nhập tên em..." autoComplete="off"/>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1 tracking-wider">Lớp</label>
-                                <div className="relative">
-                                    <i className="fa-solid fa-users absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
-                                    <input type="text" value={studentInfo.class} onChange={onClassChange} className="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-sky-500 focus:bg-white outline-none font-semibold text-slate-700 transition-all" placeholder="VD: 10A5" autoComplete="off"/>
-                                </div>
-                            </div>
-                        </div>
-                        <button onClick={handleStart} disabled={!studentInfo.name.trim() || !studentInfo.class.trim()} className="w-full bg-slate-800 hover:bg-slate-900 disabled:bg-slate-200 disabled:text-slate-400 text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-slate-200 active:scale-95 transition-all flex items-center justify-center">
-                            Vào thi ngay <i className="fa-solid fa-arrow-right ml-2"></i>
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-
-        const ResultView = ({ score, totalQuestions, studentInfo, submitStatus, scriptUrl, submitResult, handleStart }) => {
-            const percentage = Math.round((score / totalQuestions) * 100);
-            return (
-                <div className="flex flex-col h-full items-center justify-center p-6 bg-sky-50 relative overflow-hidden">
-                    {percentage >= 70 && <div className="absolute inset-0 pointer-events-none">{[...Array(30)].map((_, i) => <div key={i} className="confetti" style={{left: `${Math.random()*100}%`, animationDelay: `${Math.random()*2}s`, backgroundColor: ['#0EA5E9','#EF4444','#10B981'][Math.floor(Math.random()*3)]}} />)}</div>}
-                    <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-xl relative z-10 animate-slide-up border-t-8 border-sky-500">
-                        <div className="text-center border-b border-dashed border-gray-200 pb-6 mb-6">
-                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Kết quả bài làm</h3>
-                            <div className="text-lg font-bold text-gray-800 bg-sky-50 py-2 px-4 rounded-lg inline-block">{studentInfo.lesson}</div>
-                            <div className="mt-4 flex justify-center items-center space-x-2 text-gray-600 text-sm">
-                                <span className="flex items-center"><i className="fa-solid fa-user-circle mr-1 text-sky-500"></i> {studentInfo.name}</span>
-                                <span className="text-gray-300">|</span>
-                                <span className="font-bold">{studentInfo.class}</span>
-                            </div>
-                        </div>
-                        <div className="text-center">
-                            <div className="relative inline-block mb-6">
-                                <svg className="w-32 h-32 transform -rotate-90">
-                                    <circle cx="64" cy="64" r="56" stroke="#e2e8f0" strokeWidth="8" fill="none" />
-                                    <circle cx="64" cy="64" r="56" stroke={percentage >= 50 ? "#0ea5e9" : "#ef4444"} strokeWidth="8" fill="none" strokeDasharray={`${percentage * 3.51} 351`} strokeLinecap="round" />
-                                </svg>
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                    <span className="text-3xl font-black text-slate-800 block">{score}</span>
-                                    <span className="text-xs font-bold text-gray-400 uppercase">Điểm</span>
-                                </div>
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-800 mb-2">{percentage >= 80 ? 'Kiến thức rất vững!' : percentage >= 50 ? 'Đạt yêu cầu!' : 'Cần xem lại bài!'}</h2>
-                            
-                            <div className="mb-6 min-h-[24px]">
-                                {submitStatus === 'sending' && <span className="text-xs font-bold text-sky-500"><i className="fa-solid fa-circle-notch fa-spin mr-1"></i> Đang lưu điểm...</span>}
-                                {submitStatus === 'success' && <span className="text-xs font-bold text-green-500"><i className="fa-solid fa-check-circle mr-1"></i> Đã lưu điểm!</span>}
-                                {submitStatus === 'error' && <button onClick={submitResult} className="text-xs font-bold text-red-500 underline">Gửi lại điểm</button>}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <button onClick={() => window.location.reload()} className="bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition text-sm">Thoát</button>
-                                <button onClick={handleStart} className="bg-sky-600 text-white py-3 rounded-xl font-bold hover:bg-sky-700 shadow-lg shadow-sky-500/30 transition text-sm">Làm lại</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const QuizView = ({ currentQIndex, questionsData, currentQ, showFeedback, answers, isCorrect, inputValue, setInputValue, selectedMulti, handleMCSelect, handleFillSubmit, handleMultiSubmit, toggleMulti, nextQ, onExit }) => (
-            <div className="flex flex-col h-full bg-slate-50 relative">
-                <div className="bg-white px-4 py-3 shadow-sm z-10 sticky top-0 border-b border-slate-100 flex justify-between items-center">
-                    <button onClick={onExit} className="text-slate-400 hover:text-slate-600 text-sm font-medium"><i className="fa-solid fa-xmark text-lg"></i></button>
-                    <span className="font-bold text-slate-700 text-sm bg-slate-100 px-3 py-1 rounded-full">Câu {currentQIndex + 1}/{questionsData.length}</span>
-                </div>
-                <div className="flex-1 overflow-y-auto p-6 pb-32">
-                    <ProgressBar current={currentQIndex} total={questionsData.length} />
-                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6 animate-pop">
-                        <div className="flex items-center gap-2 mb-3">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
-                                currentQ.type === 'mc' ? 'bg-blue-100 text-blue-600' : 
-                                currentQ.type === 'tf' ? 'bg-purple-100 text-purple-600' : 
-                                currentQ.type === 'fill' ? 'bg-orange-100 text-orange-600' : 'bg-pink-100 text-pink-600'
-                            }`}>
-                                {currentQ.type === 'mc' ? 'Trắc nghiệm' : currentQ.type === 'tf' ? 'Đúng / Sai' : currentQ.type === 'fill' ? 'Điền từ' : 'Chọn nhiều'}
-                            </span>
-                        </div>
-                        <h2 className="text-lg md:text-xl font-bold text-slate-800 leading-relaxed">{currentQ.question}</h2>
-                    </div>
-                    <div className="space-y-3">
-                        {(currentQ.type === 'mc' || currentQ.type === 'tf') && currentQ.options.map((opt, idx) => {
-                            let style = "border-transparent bg-white shadow-sm hover:border-sky-200";
-                            let icon = <span className="w-8 h-8 rounded-full bg-slate-50 text-slate-500 flex items-center justify-center text-sm font-bold mr-3">{String.fromCharCode(65 + idx)}</span>;
-                            if (showFeedback) {
-                                if (idx === currentQ.correctAnswer) { style = "border-green-500 bg-green-50 text-green-800 ring-1 ring-green-500"; icon = <i className="fa-solid fa-check w-8 h-8 flex items-center justify-center rounded-full bg-green-200 text-green-700 mr-3"></i>; }
-                                else if (idx === answers[currentQ.id]?.user) { style = "border-red-500 bg-red-50 text-red-800 ring-1 ring-red-500"; icon = <i className="fa-solid fa-xmark w-8 h-8 flex items-center justify-center rounded-full bg-red-200 text-red-700 mr-3"></i>; }
-                                else style = "opacity-50";
-                            }
-                            return <button key={idx} onClick={() => handleMCSelect(idx)} disabled={showFeedback} className={`w-full p-4 rounded-2xl border-2 flex items-center text-left font-medium text-slate-700 transition-all active:scale-[0.98] ${style}`}>{icon}<span className="text-sm md:text-base">{opt}</span></button>
-                        })}
-                        {currentQ.type === 'fill' && <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} disabled={showFeedback} className={`w-full p-5 rounded-2xl border-2 outline-none font-bold text-lg text-center shadow-sm ${showFeedback ? (isCorrect ? 'border-green-500 bg-green-50 text-green-700' : 'border-red-500 bg-red-50 text-red-700') : 'border-slate-200 focus:border-sky-500'}`} placeholder="Nhập đáp án..." autoComplete="off" />}
-                        {currentQ.type === 'multi' && currentQ.options.map((opt, idx) => (
-                            <button key={idx} onClick={() => toggleMulti(idx)} disabled={showFeedback} className={`w-full p-4 rounded-2xl flex items-center text-left font-medium text-slate-700 transition-all ${showFeedback ? (currentQ.correctAnswer.includes(idx) ? 'bg-green-50 border-green-500 border-2' : (selectedMulti.includes(idx) ? 'bg-red-50 border-red-500 border-2' : 'opacity-50')) : (selectedMulti.includes(idx) ? 'bg-sky-50 border-sky-500 border-2' : 'bg-white shadow-sm border-2 border-transparent')}`}>
-                                <div className={`w-6 h-6 rounded border-2 mr-3 flex items-center justify-center ${selectedMulti.includes(idx) || (showFeedback && currentQ.correctAnswer.includes(idx)) ? 'bg-sky-600 border-sky-600' : 'border-slate-300'}`}>{ (selectedMulti.includes(idx) || (showFeedback && currentQ.correctAnswer.includes(idx))) && <i className="fa-solid fa-check text-white text-xs"></i>}</div>
-                                <span className="text-sm md:text-base">{opt}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                <div className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur border-t border-slate-100 p-4 safe-area-pb z-20">
-                    {!showFeedback ? (
-                        (currentQ.type === 'fill' || currentQ.type === 'multi') ? (
-                            <button onClick={currentQ.type === 'fill' ? handleFillSubmit : handleMultiSubmit} disabled={currentQ.type === 'fill' ? !inputValue.trim() : selectedMulti.length === 0} className="w-full bg-sky-600 disabled:bg-slate-300 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">Kiểm tra</button>
-                        ) : <div className="text-center text-slate-400 text-sm font-medium">Chọn đáp án để tiếp tục</div>
-                    ) : (
-                        <div className="flex flex-col gap-3">
-                            <div className={`p-4 rounded-2xl flex items-start ${isCorrect ? 'bg-green-50 text-green-900' : 'bg-red-50 text-red-900'}`}>
-                                <i className={`fa-solid ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'} text-xl mt-0.5 mr-3`}></i>
-                                <div className="text-sm"><span className="font-bold block mb-1">{isCorrect ? 'Chính xác!' : 'Tiếc quá!'}</span>{currentQ.explanation}{!isCorrect && currentQ.type === 'fill' && <div className="mt-1 font-bold">Đáp án: {currentQ.correctAnswer[0]}</div>}</div>
-                            </div>
-                            <button onClick={nextQ} className="w-full bg-slate-800 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all flex items-center justify-center">{currentQIndex < questionsData.length - 1 ? 'Câu tiếp theo' : 'Xem kết quả'} <i className="fa-solid fa-arrow-right ml-2"></i></button>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
-
-        function App() {
-            const [view, setView] = useState('welcome');
-            const [currentQIndex, setCurrentQIndex] = useState(0);
-            const [score, setScore] = useState(0);
-            const [answers, setAnswers] = useState({});
-            const [showFeedback, setShowFeedback] = useState(false);
-            const [isCorrect, setIsCorrect] = useState(false);
-            const [inputValue, setInputValue] = useState("");
-            const [selectedMulti, setSelectedMulti] = useState([]);
-            const [submitStatus, setSubmitStatus] = useState('idle');
-            const [studentInfo, setStudentInfo] = useState({ name: '', class: '', lesson: 'Công nghệ 10: Biểu diễn ren' });
             
-            const currentQ = questionsData[currentQIndex];
-            const handleNameChange = (e) => setStudentInfo(prev => ({...prev, name: e.target.value}));
-            const handleClassChange = (e) => setStudentInfo(prev => ({...prev, class: e.target.value}));
-
-            useEffect(() => {
-                if (view === 'result' && submitStatus === 'idle' && SCRIPT_URL) submitResult();
-            }, [view]);
-
-            const submitResult = () => {
-                setSubmitStatus('sending');
-                const data = { timestamp: new Date().toLocaleString('vi-VN'), ...studentInfo, score: `${score}/${questionsData.length}` };
-                fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-                    .then(() => setSubmitStatus('success')).catch(() => setSubmitStatus('error'));
-            };
-
-            const handleStart = () => {
-                setView('quiz'); setScore(0); setCurrentQIndex(0); setAnswers({}); setInputValue(""); setSelectedMulti([]); setShowFeedback(false); setSubmitStatus('idle');
-            };
-
-            const checkAnswer = (isRight, userAns) => {
-                setIsCorrect(isRight); setShowFeedback(true);
-                if (isRight) setScore(s => s + 1);
-                setAnswers(prev => ({ ...prev, [currentQ.id]: { user: userAns, isCorrect: isRight } }));
-            };
-
-            const handleMCSelect = (idx) => { if (!showFeedback) checkAnswer(idx === currentQ.correctAnswer, idx); };
-            const handleFillSubmit = () => { if (!showFeedback && inputValue.trim()) checkAnswer(currentQ.correctAnswer.some(ans => inputValue.toLowerCase().trim() === ans), inputValue.toLowerCase().trim()); };
-            const handleMultiSubmit = () => { 
-                if (!showFeedback && selectedMulti.length > 0) {
-                    const userS = [...selectedMulti].sort().toString();
-                    const corrS = [...currentQ.correctAnswer].sort().toString();
-                    checkAnswer(userS === corrS, selectedMulti);
-                }
-            };
-            const toggleMulti = (idx) => { if (!showFeedback) setSelectedMulti(prev => prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]); };
-            const nextQ = () => {
-                if (currentQIndex < questionsData.length - 1) { setCurrentQIndex(p => p + 1); setShowFeedback(false); setInputValue(""); setSelectedMulti([]); setIsCorrect(false); } 
-                else { setView('result'); }
-            };
-
-            return (
-                <>
-                    {view === 'welcome' && <WelcomeView studentInfo={studentInfo} onNameChange={handleNameChange} onClassChange={handleClassChange} handleStart={handleStart} />}
-                    {view === 'quiz' && <QuizView currentQIndex={currentQIndex} questionsData={questionsData} currentQ={currentQ} showFeedback={showFeedback} answers={answers} isCorrect={isCorrect} inputValue={inputValue} setInputValue={setInputValue} selectedMulti={selectedMulti} handleMCSelect={handleMCSelect} handleFillSubmit={handleFillSubmit} handleMultiSubmit={handleMultiSubmit} toggleMulti={toggleMulti} nextQ={nextQ} onExit={() => setView('welcome')} />}
-                    {view === 'result' && <ResultView score={score} totalQuestions={questionsData.length} studentInfo={studentInfo} submitStatus={submitStatus} scriptUrl={SCRIPT_URL} submitResult={submitResult} handleStart={handleStart} />}
-                </>
-            );
-        }
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+            var html = "<table>";
+            html += "<tr><th style='width:10%'>TUẦN</th><th style='width:10%'>LỚP</th><th style='width:5%'>THƯỞNG</th><th style='width:25%'>NỘI DUNG</th><th style='width:5%'>PHẠT</th><th style='width:25%'>NỘI DUNG</th><th style='width:10%'>TỔNG</th><th style='width:10%'>HẠNG</th></tr>";
+            
+            data.forEach(row => {
+              html += "<tr>";
+              html += "<td style='font-weight:bold'>" + row.tuan + "</td>";
+              html += "<td style='font-weight:bold; color:#004d40'>" + row.lop + "</td>";
+              html += "<td class='plus'>" + row.thuong + "</td>";
+              html += "<td>" + row.mcThuong + "</td>";
+              html += "<td class='minus'>" + row.phat + "</td>";
+              html += "<td>" + row.mcPhat + "</td>";
+              html += "<td class='total'>" + row.conlai + "</td>";
+              html += "<td class='rank'>" + row.hang + "</td>";
+              html += "</tr>";
+            });
+            html += "</table>";
+            div.innerHTML = html;
+        })
+        .catch(err => {
+            div.innerHTML = "<p style='color:red'>Lỗi khi tải dữ liệu: " + err + "</p>";
+        })
+        .finally(() => {
+            loader.style.display = "none";
+        });
+      }
     </script>
 </body>
 </html>
